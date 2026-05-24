@@ -1,0 +1,24 @@
+=========================================================
+gpu_id:0
+model:EEGNet
+dataset:MI2014001
+align:ea
+perturbation:['no']
+maskamp:0.5
+alpha:0.01
+nchu:5
+nmodel:3
+train:['NT']
+AT_eps:0.1
+repeat:1
+batch_size:128
+epochs:5
+optim:Adam
+lr:0.01
+commit:2026-05-19 15:32:34.125538
+device:cuda:0
+
+
+applied EA alignment to train/test per subject
+train: (2592, 1, 22, 257),0.0003565234655980021,0.7815634608268738,[648 648 648 648] test: (2592, 1, 22, 257),0.0002826184791047126,0.77231764793396,[648 648 648 648]
+********** repeat: 0, perturbation: no, training: NT **********

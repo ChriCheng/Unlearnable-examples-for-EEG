@@ -16,11 +16,73 @@ def split(x, y):
 
 
 
-def MI2014001Load(premask: Optional[str] = 'no'):
+def _load_mi2014001_local(local_data_path: str):
+    x_train, y_train, x_test, y_test = [], [], [], []
+    s_label_train = []
+    s_label_test = []
+
+    for i in range(1, 10):
+        data = scio.loadmat(os.path.join(local_data_path, f'{i}.mat'))
+        x = data['X']
+        y = np.squeeze(data['y']).astype(np.int64)
+        session = np.squeeze(data['session']).astype(np.int64)
+
+        train_mask = session == 1
+        test_mask = session == 2
+
+        x_train.append(x[train_mask])
+        y_train.append(y[train_mask])
+        x_test.append(x[test_mask])
+        y_test.append(y[test_mask])
+
+        s_label_train.append(np.array([i - 1] * np.sum(train_mask)))
+        s_label_test.append(np.array([i - 1] * np.sum(test_mask)))
+
+    x_train = np.concatenate(x_train)[:, None, :, :]
+    y_train = np.hstack(y_train)
+    x_test = np.concatenate(x_test)[:, None, :, :]
+    y_test = np.hstack(y_test)
+    s_label_train = np.hstack(s_label_train)
+    s_label_test = np.hstack(s_label_test)
+
+    print(x_train.shape)
+    print(y_train.shape)
+
+    return x_train, y_train.squeeze(), s_label_train.squeeze(), x_test, y_test.squeeze(), s_label_test.squeeze()
+
+
+def MI2014001Load(premask: Optional[str] = 'no',
+                  source: Optional[str] = 'auto',
+                  return_source: bool = False):
+    local_data_path = 'data/MI2/'
+
     if  premask == 'rand':
         data_path = '/data1/cxq/data/markprocessedMI2014001_4s_sea/'
     elif premask == 'no':
         data_path = '/data1/cxq/data/processedMI2014001_4s_sea/'
+
+    has_author_data = os.path.isdir(data_path)
+    has_local_data = os.path.isdir(local_data_path)
+
+    if source not in {'auto', 'author', 'local'}:
+        raise ValueError(f'Unknown MI2014001 source: {source}')
+
+    if source == 'local':
+        if not has_local_data:
+            raise FileNotFoundError(f'Local MI2014001 data not found: {local_data_path}')
+        data = _load_mi2014001_local(local_data_path)
+        return (*data, 'local') if return_source else data
+
+    if source == 'author':
+        if not has_author_data:
+            raise FileNotFoundError(f'Author MI2014001 data not found: {data_path}')
+    elif source == 'auto' and not has_author_data and has_local_data:
+        data = _load_mi2014001_local(local_data_path)
+        return (*data, 'local') if return_source else data
+    elif source == 'auto' and not has_author_data and not has_local_data:
+        raise FileNotFoundError(
+            f'No MI2014001 data found. Checked author path {data_path} and local path {local_data_path}'
+        )
     
     x_train, y_train, x_test, y_test = [], [], [], []
     s_label_train = []
@@ -60,7 +122,8 @@ def MI2014001Load(premask: Optional[str] = 'no'):
     print(x_train.shape)
     print(y_train.shape)
 
-    return x_train, y_train.squeeze(), s_label_train.squeeze(), x_test, y_test.squeeze(), s_label_test.squeeze()
+    data = (x_train, y_train.squeeze(), s_label_train.squeeze(), x_test, y_test.squeeze(), s_label_test.squeeze())
+    return (*data, 'author') if return_source else data
 
 
 def bcimiLoad(premask: Optional[str] = 'no'):

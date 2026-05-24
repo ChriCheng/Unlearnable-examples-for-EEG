@@ -16,9 +16,29 @@ from models import LoadModel, Classifier, CalculateOutSize
 import attack_lib
 import scipy.io as io
 from utils.data_loader import *
+from utils.data_align import centroid_align
 from utils.pytorch_utils import init_weights, print_args, seed, weight_for_balanced_classes, bca_score
 from unlearnable_gen import  unlearnable_optim_linf, adv_linf
 import pandas as pd
+
+
+def apply_ea_per_subject(x: np.ndarray, s_label: np.ndarray):
+    x_aligned = x.copy()
+    subject_ids = np.unique(s_label)
+
+    for sid in subject_ids:
+        sid_mask = s_label == sid
+        sid_x = x_aligned[sid_mask]
+
+        if sid_x.ndim == 4 and sid_x.shape[1] == 1:
+            sid_x_3d = np.squeeze(sid_x, axis=1)
+            _, sid_x_ea = centroid_align(center_type='euclid', cov_type='lwf').fit_transform(sid_x_3d)
+            x_aligned[sid_mask] = sid_x_ea[:, None, :, :]
+        else:
+            _, sid_x_ea = centroid_align(center_type='euclid', cov_type='lwf').fit_transform(sid_x)
+            x_aligned[sid_mask] = sid_x_ea
+
+    return x_aligned
 
 
 def run(x: torch.Tensor, y: torch.Tensor, s_train: torch.Tensor,x_test: torch.Tensor,
@@ -196,7 +216,7 @@ def eval(model1: nn.Module, model2: nn.Module, criterion: nn.Module,
             x, y = x.to(args.device), y.to(args.device)
             out = model2(model1(x))
             pred = nn.Softmax(dim=1)(out).cpu().argmax(dim=1)
-            loss += criterion(out, y).item()
+            loss += criterion(out, y).item() * x.size(0)
             correct += pred.eq(y.cpu().view_as(pred)).sum().item()
             labels.extend(y.cpu().tolist())
             preds.extend(pred.tolist())
@@ -225,6 +245,8 @@ if __name__ == '__main__':
     parser.add_argument('--gpu_id', type=str, default='0')
     parser.add_argument('--model', type=str, default='EEGNet') #ShallowCNN DeepCNN EEGNet
     parser.add_argument('--dataset', type=str, default='ERN')# physionet MI2014001 EPFL
+    parser.add_argument('--align', type=str, default='none')  # ['none', 'ea']
+    parser.add_argument('--mi2014001_source', type=str, default='auto')  # ['auto', 'author', 'local']
     
     parser.add_argument('--perturbation', nargs='+',default=['adv_linf'])# ['no', 'rand', 'sn', 'optim_linf', 'adv_linf']
     parser.add_argument('--maskamp', type=float, default=0.5)#['no', 'rand', 'sn', 'optim_linf', 'adv_linf']
@@ -273,18 +295,18 @@ if __name__ == '__main__':
     if args.perturbation == ['optim_linf']:
         args.nmodel = 1
     # ========================model path=======================
-    model_path = f'/data1/cxq/model_id/{args.dataset}/{args.model}/'
+    model_path = os.path.join(os.getcwd(), 'outputs', 'models', args.dataset, args.model)
 
 
     # ========================log name and excel name=======================
-    log_path = f'/home/xqchen/attack_id_eegn/result/log'
+    log_path = os.path.join(os.getcwd(), 'outputs', 'log')
     if not os.path.exists(log_path):
         os.makedirs(log_path)
     log_name = os.path.join(log_path,
                             f'{args.dataset}_{args.model}_{args.maskamp}-{args.perturbation}_{args.AT_eps}-{args.train}_base.log')
     
 
-    excel_path = f'/home/xqchen/attack_id_eegn/result/excel'
+    excel_path = os.path.join(os.getcwd(), 'outputs', 'excel')
     if not os.path.exists(excel_path):
         os.makedirs(excel_path)
     excel_name = os.path.join(excel_path,f'{args.dataset}_{args.model}_{args.maskamp}-{args.perturbation}_{args.AT_eps}-{args.train}_base.xlsx')
@@ -315,7 +337,11 @@ if __name__ == '__main__':
         for p,pm in enumerate(args.perturbation):
 
             if args.dataset == 'MI2014001':
-                x_train, y_train, s_train, x_test, y_test, s_test = MI2014001Load()
+                x_train, y_train, s_train, x_test, y_test, s_test, data_source = MI2014001Load(
+                    source=args.mi2014001_source,
+                    return_source=True
+                )
+                logging.info(f'MI2014001 data source: {data_source}')
             elif args.dataset == 'physionet':
                 x_train, y_train, s_train, x_test, y_test, s_test = physionetLoad()
             elif args.dataset == 'MI2014004':
@@ -326,9 +352,6 @@ if __name__ == '__main__':
                 x_train, y_train, s_train, x_test, y_test, s_test = p3002014009Load()
             elif args.dataset == 'bcimi':
                 x_train, y_train, s_train, x_test, y_test, s_test = bcimiLoad()
-
-
-            logging.info(f'maskl2: {args.maskl2}')
 
             if pm == 'rand':
                 template = np.random.rand(subject_num_dict[args.dataset],x_train.shape[2],x_train.shape[3]) * 2 - 1
@@ -385,6 +408,11 @@ if __name__ == '__main__':
                 recorder_pert[r,2*p] = linf
                 recorder_pert[r,2*p+1] = l2
 
+            if args.align == 'ea':
+                x_train = apply_ea_per_subject(x_train, s_train)
+                x_test = apply_ea_per_subject(x_test, s_test)
+                logging.info('applied EA alignment to train/test per subject')
+
 
             logging.info(f'train: {x_train.shape},{x_train.mean()},{x_train.std()},{np.bincount(y_train.astype(int))} test: {x_test.shape},{x_test.mean()},{x_test.std()},{np.bincount(y_test.astype(int))}')
             x_train = Variable(
@@ -436,7 +464,3 @@ if __name__ == '__main__':
     with pd.ExcelWriter(excel_name) as writer:
         recorder_df.to_excel(writer, sheet_name='bca')
         recorder_pert_df.to_excel(writer, sheet_name='distance')
-
-
-
-

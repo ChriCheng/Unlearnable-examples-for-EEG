@@ -1,0 +1,102 @@
+=========================================================
+gpu_id:0
+model:EEGNet
+dataset:MI2014001
+align:none
+mi2014001_source:local
+perturbation:['no']
+maskamp:0.5
+alpha:0.01
+nchu:5
+nmodel:3
+train:['NT']
+AT_eps:0.1
+repeat:5
+batch_size:128
+epochs:100
+optim:Adam
+lr:0.01
+commit:2026-05-19 16:24:10.379758
+device:cuda:0
+
+
+MI2014001 data source: local
+train: (2592, 1, 22, 257),0.012976030819118023,7.562695503234863,[648 648 648 648] test: (2592, 1, 22, 257),0.011176557280123234,8.025641441345215,[648 648 648 648]
+********** repeat: 0, perturbation: no, training: NT **********
+=======train classification task model=======
+test_loss: 1.1669 test acc: 0.4938 test bca: 0.49
+=======train user recognize model=======
+test_loss: 0.4780 test acc: 0.8696 test bca: 0.87
+MI2014001 data source: local
+train: (2592, 1, 22, 257),0.012976030819118023,7.562695503234863,[648 648 648 648] test: (2592, 1, 22, 257),0.011176557280123234,8.025641441345215,[648 648 648 648]
+********** repeat: 1, perturbation: no, training: NT **********
+=======train classification task model=======
+test_loss: 1.1468 test acc: 0.4819 test bca: 0.48
+=======train user recognize model=======
+test_loss: 1.2896 test acc: 0.6690 test bca: 0.67
+MI2014001 data source: local
+train: (2592, 1, 22, 257),0.012976030819118023,7.562695503234863,[648 648 648 648] test: (2592, 1, 22, 257),0.011176557280123234,8.025641441345215,[648 648 648 648]
+********** repeat: 2, perturbation: no, training: NT **********
+=======train classification task model=======
+test_loss: 1.0843 test acc: 0.5270 test bca: 0.53
+=======train user recognize model=======
+test_loss: 1.0032 test acc: 0.7465 test bca: 0.75
+MI2014001 data source: local
+train: (2592, 1, 22, 257),0.012976030819118023,7.562695503234863,[648 648 648 648] test: (2592, 1, 22, 257),0.011176557280123234,8.025641441345215,[648 648 648 648]
+********** repeat: 3, perturbation: no, training: NT **********
+=======train classification task model=======
+test_loss: 1.1047 test acc: 0.5154 test bca: 0.52
+=======train user recognize model=======
+test_loss: 1.1980 test acc: 0.7180 test bca: 0.72
+MI2014001 data source: local
+train: (2592, 1, 22, 257),0.012976030819118023,7.562695503234863,[648 648 648 648] test: (2592, 1, 22, 257),0.011176557280123234,8.025641441345215,[648 648 648 648]
+********** repeat: 4, perturbation: no, training: NT **********
+=======train classification task model=======
+test_loss: 1.1305 test acc: 0.4969 test bca: 0.50
+=======train user recognize model=======
+test_loss: 0.6976 test acc: 0.7932 test bca: 0.79
+=========================================================
+gpu_id:0
+model:EEGNet
+dataset:MI2014001
+align:none
+mi2014001_source:local
+perturbation:['no']
+maskamp:0.5
+alpha:0.01
+nchu:5
+nmodel:3
+train:['NT']
+AT_eps:0.1
+repeat:5
+batch_size:128
+epochs:100
+optim:Adam
+lr:0.01
+commit:2026-05-19 16:24:10.379758
+device:cuda:0
+model_path:/home/ubuntu/code/Unlearnable-examples-for-EEG/outputs/models/MI2014001/EEGNet/4/0.5_no/0.1_NT
+num_classes:4
+
+
+================================final result================================
+                no          
+                NT          
+              Task       PID
+repeat_0  0.493827  0.869599
+repeat_1  0.481867  0.668981
+repeat_2  0.527006  0.746528
+repeat_3  0.515432  0.717978
+repeat_4  0.496914  0.793210
+mean      0.503009  0.759259
+std       0.016116  0.068328
+  
+           no     
+         Linf   L2
+repeat_0  0.0  0.0
+repeat_1  0.0  0.0
+repeat_2  0.0  0.0
+repeat_3  0.0  0.0
+repeat_4  0.0  0.0
+mean      0.0  0.0
+std       0.0  0.0

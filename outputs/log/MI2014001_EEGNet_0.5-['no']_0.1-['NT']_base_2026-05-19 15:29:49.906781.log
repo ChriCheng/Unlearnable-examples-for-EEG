@@ -1,0 +1,21 @@
+=========================================================
+gpu_id:0
+model:EEGNet
+dataset:MI2014001
+align:ea
+perturbation:['no']
+maskamp:0.5
+alpha:0.01
+nchu:5
+nmodel:3
+train:['NT']
+AT_eps:0.1
+repeat:5
+batch_size:128
+epochs:100
+optim:Adam
+lr:0.01
+commit:2026-05-19 15:29:49.906781
+device:cuda:0
+
+

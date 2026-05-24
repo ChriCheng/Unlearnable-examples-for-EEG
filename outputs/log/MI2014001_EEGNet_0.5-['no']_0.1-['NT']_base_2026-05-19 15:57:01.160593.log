@@ -1,0 +1,64 @@
+=========================================================
+gpu_id:0
+model:EEGNet
+dataset:MI2014001
+align:ea
+perturbation:['no']
+maskamp:0.5
+alpha:0.01
+nchu:5
+nmodel:3
+train:['NT']
+AT_eps:0.1
+repeat:1
+batch_size:128
+epochs:5
+optim:Adam
+lr:0.01
+commit:2026-05-19 15:57:01.160593
+device:cuda:0
+
+
+applied EA alignment to train/test per subject
+train: (2592, 1, 22, 257),0.00035652436781674623,0.7815633416175842,[648 648 648 648] test: (2592, 1, 22, 257),0.0002826183335855603,0.7723173499107361,[648 648 648 648]
+********** repeat: 0, perturbation: no, training: NT **********
+=======train classification task model=======
+test_loss: 0.0090 test acc: 0.5023 test bca: 0.50
+=======train user recognize model=======
+test_loss: 0.0160 test acc: 0.3140 test bca: 0.31
+=========================================================
+gpu_id:0
+model:EEGNet
+dataset:MI2014001
+align:ea
+perturbation:['no']
+maskamp:0.5
+alpha:0.01
+nchu:5
+nmodel:3
+train:['NT']
+AT_eps:0.1
+repeat:1
+batch_size:128
+epochs:5
+optim:Adam
+lr:0.01
+commit:2026-05-19 15:57:01.160593
+device:cuda:0
+model_path:/home/ubuntu/code/Unlearnable-examples-for-EEG/outputs/models/MI2014001/EEGNet/0/0.5_no/0.1_NT
+num_classes:4
+
+
+================================final result================================
+                no          
+                NT          
+              Task       PID
+repeat_0  0.502315  0.314043
+mean      0.502315  0.314043
+std       0.000000  0.000000
+  
+           no     
+         Linf   L2
+repeat_0  0.0  0.0
+mean      0.0  0.0
+std       0.0  0.0
